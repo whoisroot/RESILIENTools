@@ -12,6 +12,7 @@ rst = colorama.Fore.RESET
 cnz = colorama.Fore.LIGHTBLACK_EX
 
 tag_file = 'tags.json'
+tweet_file = 'tagged_tweets.json'
 
 if len(sys.argv) < 2:
     print(vrm+"\nUso: "+rst+sys.argv[0]+" arquivo_com_tweets.json"+amrl+" [arquivo_com_os_rotulos]\n"+rst)
@@ -49,9 +50,11 @@ def save_tags():
         json.dump(tags,f)
     return
 
-def save_tweets():
+def save_tweets(tagged, left):
+    with open(tweet_file,'w') as f:
+        json.dump(tagged,f)
     with open(raw_tweet_file,'w') as f:
-        json.dump(tags,f)
+        json.dump(left,f)
     return
 
 def pprint_tweet(post):
@@ -60,6 +63,7 @@ def pprint_tweet(post):
     sz = 80
     lines = len(tweet)//sz
     i = 0
+    print(tab+vrm+"Data: "+vrd+post['date']+" "+post['time']+rst)
     print(tab+vrm+"Tweet: "+rst)
     if len(tweet)>sz:
         for i in range(lines):
@@ -81,13 +85,16 @@ def relevante():
         return False
 
 tagged = []
-for i, tweet in enumerate(tweets):
+for i in range(len(tweets)):
+    tweet = tweets.pop()
     system("clear")
-    print("\n\n")
+    print(i,"\n\n")
     pprint_tweet(tweet)
     if not relevante():
         pass
     else:
+        tweet['relevante'] = True
         tagged.append(tweet)
 
-pprint(tagged[-1]['tweet'])    
+    if i%10 == 0:
+        save_tweets(tagged, tweets)
