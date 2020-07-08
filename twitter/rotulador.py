@@ -1,8 +1,8 @@
 #!/bin/python
 
 import json, sys, colorama
-from pprint import pprint
-from os import system
+from pprint import pprint, pformat
+from os import environ, path, stat, system
 
 vrd = colorama.Fore.GREEN
 vrm = colorama.Fore.RED
@@ -14,36 +14,32 @@ cnz = colorama.Fore.LIGHTBLACK_EX
 tag_file = 'tags.json'
 tweet_file = 'tagged_tweets.json'
 
-if len(sys.argv) < 2:
-    print(vrm+"\nUso: "+rst+sys.argv[0]+" arquivo_com_tweets.json"+amrl+" [arquivo_com_os_rotulos]\n"+rst)
-    exit(0)
-elif len(sys.argv) == 3:
-    tag_file = sys.argv[2]
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print(vrm+"\nUso: "+rst+sys.argv[0]+" arquivo_com_tweets.json"+amrl+" [arquivo_com_os_rotulos]\n"+rst)
+        exit(0)
+    elif len(sys.argv) == 3:
+        tag_file = sys.argv[2]
 
-raw_tweet_file = sys.argv[1]
+    raw_tweet_file = sys.argv[1]
 
-try:
-    with open(raw_tweet_file) as f:
-        tweets = json.load(f)
-except FileNotFoundError:
-    print("O arquivo não existe.\n"+vrm+"Por favor, verifique se o arquivo existe ou se\nnão digitou errado antes de tentar novamente."+rst)
-    exit(0)
+    try:
+        with open(raw_tweet_file) as f:
+            tweets = json.load(f)
+    except FileNotFoundError:
+        print("O arquivo não existe.\n"+vrm+"Por favor, verifique se o arquivo existe ou se\nnão digitou errado antes de tentar novamente."+rst)
+        exit(0)
 
-try:
-    with open(tag_file) as f:
-        tags = json.load(f)
-        print(f.read())
-except FileNotFoundError:
-    with open(tag_file, 'w') as f:
-        f.write('[]')
-    tags = []
+    try:
+        with open(tag_file) as f:
+            tags = json.load(f)
+            print(f.read())
+    except FileNotFoundError:
+        with open(tag_file, 'w') as f:
+            f.write('{}')
+        tags = {}
+    main()
 
-"""
-print("TAGS:")
-pprint(tags)
-print("\nTWEETS:\n")
-pprint(tweets)
-#"""
 
 def save_tags():
     with open(tag_file,'w') as f:
@@ -61,40 +57,104 @@ def pprint_tweet(post):
     tab = " "*4
     tweet = post['tweet']
     sz = 80
-    lines = len(tweet)//sz
-    i = 0
     print(tab+vrm+"Data: "+vrd+post['date']+" "+post['time']+rst)
     print(tab+vrm+"Tweet: "+rst)
     if len(tweet)>sz:
-        for i in range(lines):
-            print(tab*2+tweet[i*sz:(i+1)*sz])
-        print(tab*2+tweet[(i+1)*sz:-1]+"\n")
+        out = ""
+        for line in pformat(tweet, width=sz):
+                out += line.replace('\'','').replace('(','').replace('\\n','\n')
+        for a in out.split('\n'):
+                print(tab*2+a.strip('\\n').strip(' '))
+
     else:
         print(tab*2+tweet+"\n")
     print(vrd+tab+"Retweets: "+rst+str(post['retweets_count'])+tab*3+vrd+"Likes: "+rst+str(post['likes_count']))
 
     return
 
-def relevante():
+def display(images):
+    if not sys.platform.startswith('linux'):
+        return
+    if prompt("Esse post contém imagens. Deseja exibi-las?"):
+        if environ['TERM'] == 'xterm-kitty':
+            for image in images:
+                system('kitty +kitten icat "'+image+'"')
+        elif environ['XDG_SESSION_TYPE'] != 'tty':
+            for image in images:
+                system('xdg-open "'+image+'"')
+        else:
+            print(vrm+"Erro: "+rst+"Este terminal não suporta exibição de imagens e não detecto estar em uma sessão gráfica")
+    return
+
+def prompt(pergunta):
     value = ""
     while value != "S" and value != "N":
-        value = input("Esse post é relevante para o estudo? (S/N)\n-> ")[:1].upper()
+        value = input(pergunta,"(S/N)\n-> ")[:1].upper()
     if value == 'S':
         return True
     else:
         return False
 
-tagged = []
-for i in range(len(tweets)):
-    tweet = tweets.pop()
-    system("clear")
-    print(i,"\n\n")
-    pprint_tweet(tweet)
-    if not relevante():
-        pass
-    else:
-        tweet['relevante'] = True
-        tagged.append(tweet)
+def tag(pergunta,tags):
+    aplicadas = []
+    new = False
+    no_tags = False
+    temp = "\n"
+    for i, tag in enumerate(tags):
+        temp += cnz+'['+str(i)+']'+rst+tag+'  '
+    print()
+    while len(aplicadas) == 0:
+        aplicadas = input('\n'+pergunta+temp[:-2]+"\n-> ").replace(' ','%').replace(',','%').split('%')
+        if 'n' in aplicadas or 'N' in aplicadas:
+            new = True
+        if 'x' in aplicadas or 'X' in aplicadas:
+            no_tags = True
+        aplicadas[:] = [a for a in aplicadas if a.isdecimal()]
+    aplicadas = list(set(aplicadas))
+    if new:
+        print('Novas tags!!')
+    if no_tags:
+        print("No tags")
+        return
+    return sorted(aplicadas)
 
-    if i%10 == 0:
-        save_tweets(tagged, tweets)
+def main():
+    if path.exists(tweet_file):
+        if stat(tweet_file).st_size >  0:
+            with open(tweet_file) as f:
+                tagged = json.load(f)
+        else:
+            tagged = []
+    else:
+        tagged = []
+    tagger()
+    return
+
+def tagger():
+    try:
+        for i in range(len(tweets)):
+            tweet = tweets.pop()
+            system("clear")
+            print(i,"\n\n")
+            pprint_tweet(tweet)
+            if not prompt("Esse post é relevante para o estudo?"):
+                pass
+            else:
+                tweet['relevante'] = True
+                if tweet['photos'] != []:
+                    display(tweet['photos'])
+                tagged.append(tweet)
+
+            if i%10 == 0:
+                #save_tweets(tagged, tweets)
+                pass
+        return
+    except KeyboardInterrupt:
+        #save_tweets(tagged, tweets)
+        if prompt("Você deseja mesmo encerrar?"):
+            print(vrm+'\n\nEncerrando programa...\n'+amrl+'Salvando tweets rotulados...')
+            print(vrd+'\nSalvos!\n\n'+azl+'Adeus!!'+rst)
+            exit(0)
+        else:
+            tagger()
+
