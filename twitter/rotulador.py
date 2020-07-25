@@ -101,22 +101,27 @@ def tag(pergunta,tags):
     no_tags = False
     temp = "\n"
     for i, tag in enumerate(tags):
-        temp += cnz+'['+str(i)+']'+rst+tag+'  '
-    print()
-    while len(aplicadas) == 0:
+        temp += cnz+'['+str(i)+'] '+rst+tag+'  '
+    print(amrl+"\nDigite o número das tags separados por espaços ou vírgulas e/ou (n/N) para adicionar novas tags.\nCaso a pergunta não aplique, apenas digite (X/x)"+rst)
+    while len(aplicadas) == 0 and not new and not no_tags:
         aplicadas = input('\n'+pergunta+temp[:-2]+"\n-> ").replace(' ','%').replace(',','%').split('%')
         if 'n' in aplicadas or 'N' in aplicadas:
+            nova_tag = "*"
+            while nova_tag != "":
+                i += 1
+                nova_tag = input("Digite uma nova tag ou Enter para encerrar: ")
+                if nova_tag != '':
+                    aplicadas.append(str(i))
+                    tags.append(nova_tag)
             new = True
         if 'x' in aplicadas or 'X' in aplicadas:
             no_tags = True
-        aplicadas[:] = [a for a in aplicadas if a.isdecimal()]
+        aplicadas[:] = [int(a) for a in aplicadas if a.isdecimal() and int(a) < i]
     aplicadas = list(set(aplicadas))
-    if new:
-        print('Novas tags!!')
     if no_tags:
-        print("No tags")
         return
-    return sorted(aplicadas)
+    aplicadas = list(set(aplicadas))
+    return [tags[i] for i in aplicadas]
 
 def main():
     if path.exists(tweet_file):
@@ -152,7 +157,10 @@ def tagger():
     except KeyboardInterrupt:
         #save_tweets(tagged, tweets)
         if prompt("Você deseja mesmo encerrar?"):
-            print(vrm+'\n\nEncerrando programa...\n'+amrl+'Salvando tweets rotulados...')
+            print(vrm+'\n\nEncerrando programa...\n')
+            sleep(0.5)
+            print(amrl+'Salvando tweets rotulados...')
+            sleep(0.5)
             print(vrd+'\nSalvos!\n\n'+azl+'Adeus!!'+rst)
             exit(0)
         else:
