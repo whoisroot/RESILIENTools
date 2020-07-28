@@ -102,9 +102,9 @@ def tag(pergunta,tags):
     temp = "\n"
     for i, tag in enumerate(tags):
         temp += cnz+'['+str(i)+'] '+rst+tag+'  '
-    print(amrl+"\nDigite o número das tags separados por espaços ou vírgulas e/ou (n/N) para adicionar novas tags.\nCaso a pergunta não aplique, apenas digite (X/x)"+rst)
+    print(vrm+"\nDigite o número das tags separados por espaços ou vírgulas e/ou (n/N) para adicionar novas tags.\nCaso a pergunta não aplique, apenas digite (X/x)\n"+amrl+pergunta)
     while len(aplicadas) == 0 and not new and not no_tags:
-        aplicadas = input('\n'+pergunta+temp[:-2]+"\n-> ").replace(' ','%').replace(',','%').split('%')
+        aplicadas = input(temp[:-2]+"\n-> ").replace(' ','%').replace(',','%').split('%')
         if 'n' in aplicadas or 'N' in aplicadas:
             nova_tag = "*"
             while nova_tag != "":
@@ -114,9 +114,10 @@ def tag(pergunta,tags):
                     aplicadas.append(str(i))
                     tags.append(nova_tag)
             new = True
+            save_tags()
         if 'x' in aplicadas or 'X' in aplicadas:
             no_tags = True
-        aplicadas[:] = [int(a) for a in aplicadas if a.isdecimal() and int(a) < i]
+        aplicadas[:] = [int(a) for a in aplicadas if a.isdecimal() and int(a) <= i]
     aplicadas = list(set(aplicadas))
     if no_tags:
         return
@@ -133,11 +134,12 @@ def main():
     else:
         tagged = []
     tagger()
+    save_tweets(tagged, tweets)
     return
 
 def tagger():
     try:
-        for i in range(len(tweets)):
+        for i in range(1,len(tweets)):
             tweet = tweets.pop()
             system("clear")
             print(i,"\n\n")
@@ -148,14 +150,20 @@ def tagger():
                 tweet['relevante'] = True
                 if tweet['photos'] != []:
                     display(tweet['photos'])
+                for cat in perguntas.keys():
+                    categoria = perguntas[tag]
+                    if categoria ['bool']:
+                        tweet[cat] = prompt(categoria['pergunta'])
+                    else:
+                       tweet[cat] = tag(categoria['pergunta'], tags[cat])
                 tagged.append(tweet)
 
             if i%10 == 0:
-                #save_tweets(tagged, tweets)
+                save_tweets(tagged, tweets)
                 pass
         return
     except KeyboardInterrupt:
-        #save_tweets(tagged, tweets)
+        save_tweets(tagged, tweets)
         if prompt("Você deseja mesmo encerrar?"):
             print(vrm+'\n\nEncerrando programa...\n')
             sleep(0.5)
