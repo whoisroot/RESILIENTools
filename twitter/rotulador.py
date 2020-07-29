@@ -3,6 +3,7 @@
 import json, sys, colorama
 from pprint import pprint, pformat
 from os import environ, path, stat, system
+from time import sleep
 
 vrd = colorama.Fore.GREEN
 vrm = colorama.Fore.RED
@@ -13,33 +14,6 @@ cnz = colorama.Fore.LIGHTBLACK_EX
 
 tag_file = 'tags.json'
 tweet_file = 'tagged_tweets.json'
-
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print(vrm+"\nUso: "+rst+sys.argv[0]+" arquivo_com_tweets.json"+amrl+" [arquivo_com_os_rotulos]\n"+rst)
-        exit(0)
-    elif len(sys.argv) == 3:
-        tag_file = sys.argv[2]
-
-    raw_tweet_file = sys.argv[1]
-
-    try:
-        with open(raw_tweet_file) as f:
-            tweets = json.load(f)
-    except FileNotFoundError:
-        print("O arquivo não existe.\n"+vrm+"Por favor, verifique se o arquivo existe ou se\nnão digitou errado antes de tentar novamente."+rst)
-        exit(0)
-
-    try:
-        with open(tag_file) as f:
-            tags = json.load(f)
-            print(f.read())
-    except FileNotFoundError:
-        with open(tag_file, 'w') as f:
-            f.write('{}')
-        tags = {}
-    main()
-
 
 def save_tags():
     with open(tag_file,'w') as f:
@@ -79,40 +53,46 @@ def display(images):
         if environ['TERM'] == 'xterm-kitty':
             for image in images:
                 system('kitty +kitten icat "'+image+'"')
+                input(vrm+"\n\n[OK]"+rst)
         elif environ['XDG_SESSION_TYPE'] != 'tty':
             for image in images:
                 system('xdg-open "'+image+'"')
         else:
-            print(vrm+"Erro: "+rst+"Este terminal não suporta exibição de imagens e não detecto estar em uma sessão gráfica")
+            print(vrm+"Erro: "+rst+"Este terminal não suporta exibição de imagens e não detecto estar em uma sessão gráfica.\nDe OK para continuar ou ctrl+c para interromper.")
+            input(amrl+"\n[OK]"+rst)
     return
 
 def prompt(pergunta):
     value = ""
+    print('\n'+amrl+pergunta)
     while value != "S" and value != "N":
-        value = input(pergunta,"(S/N)\n-> ")[:1].upper()
+        value = input(cnz+"[S/N]"+rst+"\n-> ")[:1].upper()
     if value == 'S':
         return True
     else:
         return False
 
-def tag(pergunta,tags):
+def tag(pergunta,tag_values):
     aplicadas = []
     new = False
     no_tags = False
     temp = "\n"
-    for i, tag in enumerate(tags):
+    i = 0
+    for i, tag in enumerate(tag_values):
         temp += cnz+'['+str(i)+'] '+rst+tag+'  '
-    print(vrm+"\nDigite o número das tags separados por espaços ou vírgulas e/ou (n/N) para adicionar novas tags.\nCaso a pergunta não aplique, apenas digite (X/x)\n"+amrl+pergunta)
+    temp += cnz+'\n[n] '+rst+'Adicionar nova tag    '+cnz+"[x]"+rst+" Pergunta não se aplica"
+    print(vrm+"\nDigite o número das tags separados por espaços ou vírgulas.\n\n"+amrl+pergunta+rst)
     while len(aplicadas) == 0 and not new and not no_tags:
-        aplicadas = input(temp[:-2]+"\n-> ").replace(' ','%').replace(',','%').split('%')
+        aplicadas = input(temp+"\n-> ").replace(' ','%').replace(',','%').split('%')
         if 'n' in aplicadas or 'N' in aplicadas:
             nova_tag = "*"
             while nova_tag != "":
-                i += 1
+                if i != 0:
+                    i += 1
                 nova_tag = input("Digite uma nova tag ou Enter para encerrar: ")
                 if nova_tag != '':
                     aplicadas.append(str(i))
-                    tags.append(nova_tag)
+                    tag_values.append(nova_tag)
             new = True
             save_tags()
         if 'x' in aplicadas or 'X' in aplicadas:
@@ -122,9 +102,32 @@ def tag(pergunta,tags):
     if no_tags:
         return
     aplicadas = list(set(aplicadas))
-    return [tags[i] for i in aplicadas]
+    return [tag_values[i] for i in aplicadas]
 
 def main():
+    try:
+        with open(raw_tweet_file) as f:
+            tweets = json.load(f)
+    except FileNotFoundError:
+        print("O arquivo não existe.\n"+vrm+"Por favor, verifique se o arquivo existe ou se\nnão digitou errado antes de tentar novamente."+rst)
+        exit(0)
+
+    with open('perguntas.json') as f:
+        perguntas = json.load(f)
+
+    global tags
+    try:
+        with open(tag_file) as f:
+            tags = json.load(f)
+    except FileNotFoundError:
+        tags = {}
+        with open(tag_file, 'w') as f:
+            json.dump(tags,f)
+    if not len(tags) > 0:
+        print("tags if")
+        for cat in perguntas.keys():
+            tags[cat] = []
+
     if path.exists(tweet_file):
         if stat(tweet_file).st_size >  0:
             with open(tweet_file) as f:
@@ -133,16 +136,19 @@ def main():
             tagged = []
     else:
         tagged = []
-    tagger()
+
+    tagger(tweets, tags, tagged, perguntas)
     save_tweets(tagged, tweets)
+
     return
 
-def tagger():
+def tagger(tweets, tags, tagged, perguntas):
+    total = len(tweets)
     try:
         for i in range(1,len(tweets)):
             tweet = tweets.pop()
             system("clear")
-            print(i,"\n\n")
+            print(i,'/',total,"\n\n")
             pprint_tweet(tweet)
             if not prompt("Esse post é relevante para o estudo?"):
                 pass
@@ -151,26 +157,38 @@ def tagger():
                 if tweet['photos'] != []:
                     display(tweet['photos'])
                 for cat in perguntas.keys():
-                    categoria = perguntas[tag]
+                    categoria = perguntas[cat]
                     if categoria ['bool']:
                         tweet[cat] = prompt(categoria['pergunta'])
                     else:
-                       tweet[cat] = tag(categoria['pergunta'], tags[cat])
+                        tweet[cat] = tag(categoria['pergunta'], tags[cat])
                 tagged.append(tweet)
 
             if i%10 == 0:
                 save_tweets(tagged, tweets)
-                pass
         return
     except KeyboardInterrupt:
+        tweets.append(tweet)
         save_tweets(tagged, tweets)
         if prompt("Você deseja mesmo encerrar?"):
             print(vrm+'\n\nEncerrando programa...\n')
             sleep(0.5)
             print(amrl+'Salvando tweets rotulados...')
             sleep(0.5)
-            print(vrd+'\nSalvos!\n\n'+azl+'Adeus!!'+rst)
+            print(vrd+'\nSalvos!\n\n'+rst)
             exit(0)
         else:
-            tagger()
+            tagger(tweets, tags, tagged,perguntas)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print(vrm+"\nUso: "+rst+sys.argv[0]+" arquivo_com_tweets.json"+amrl+" [arquivo_com_os_rotulos]\n"+rst)
+        exit(0)
+    elif len(sys.argv) == 3:
+        tag_file = sys.argv[2]
+    raw_tweet_file = sys.argv[1]
+    global tweets, tags, tagged
+
+    main()
 
