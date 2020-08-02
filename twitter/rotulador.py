@@ -4,6 +4,7 @@ import json, sys, colorama
 from pprint import pprint, pformat
 from os import environ, path, stat, system
 from time import sleep
+from wget import download
 
 vrd = colorama.Fore.GREEN
 vrm = colorama.Fore.RED
@@ -11,9 +12,6 @@ azl = colorama.Fore.BLUE
 amrl = colorama.Fore.LIGHTYELLOW_EX
 rst = colorama.Fore.RESET
 cnz = colorama.Fore.LIGHTBLACK_EX
-
-tag_file = 'tags.json'
-tweet_file = 'tagged_tweets.json'
 
 def save_tags():
     with open(tag_file,'w') as f:
@@ -56,9 +54,11 @@ def display(images):
                 input(vrm+"\n\n[OK]"+rst)
         elif environ['XDG_SESSION_TYPE'] != 'tty':
             for image in images:
-                system('xdg-open "'+image+'"')
+                path = "/tmp/rotulador_imgs/"+image.rsplit('/',1)[1]
+                download(image, path, bar=None)
+                system('xdg-open "'+path+'"')
         else:
-            print(vrm+"Erro: "+rst+"Este terminal não suporta exibição de imagens e não detecto estar em uma sessão gráfica.\nDe OK para continuar ou ctrl+c para interromper.")
+            print(vrm+"Erro: "+rst+"Este terminal não suporta exibição de imagens e não detecto estar em uma sessão gráfica.\nDe OK para continuar ou Ctrl+C para interromper.")
             input(amrl+"\n[OK]"+rst)
     return
 
@@ -137,8 +137,10 @@ def main():
     else:
         tagged = []
 
+    system("mkdir -p /tmp/rotulador_imgs")
     tagger(tweets, tags, tagged, perguntas)
     save_tweets(tagged, tweets)
+    save_tags()
 
     return
 
@@ -166,6 +168,7 @@ def tagger(tweets, tags, tagged, perguntas):
 
             if i%10 == 0:
                 save_tweets(tagged, tweets)
+                system("rm /tmp/rotulador_imgs/*")
         return
     except KeyboardInterrupt:
         tweets.append(tweet)
@@ -182,6 +185,7 @@ def tagger(tweets, tags, tagged, perguntas):
 
 
 if __name__ == '__main__':
+    tag_file = 'tags.json'
     if len(sys.argv) < 2:
         print(vrm+"\nUso: "+rst+sys.argv[0]+" arquivo_com_tweets.json"+amrl+" [arquivo_com_os_rotulos]\n"+rst)
         exit(0)
@@ -189,6 +193,8 @@ if __name__ == '__main__':
         tag_file = sys.argv[2]
     raw_tweet_file = sys.argv[1]
     global tweets, tags, tagged
+    with raw_tweet_file.rsplit('.',1) as name:
+        tweet_file = name[0]+"_tagged"+name[1]
 
     main()
 
