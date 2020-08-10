@@ -1,4 +1,4 @@
-#!/bin/python
+#! /usr/bin/env python
 
 import json, sys, colorama
 from pprint import pprint, pformat
@@ -193,7 +193,7 @@ if __name__ == '__main__':
         tag_file = sys.argv[2]
     raw_tweet_file = sys.argv[1]
     global tweets, tags, tagged
-    name = raw_tweet_file.rsplit('.',1)
+    name = raw_tweet_file.split('/')[-1].split('.')
     tweet_file = name[0]+"_tagged."+name[1]
 
     main()
