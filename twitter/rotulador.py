@@ -40,7 +40,7 @@ def pprint_tweet(post):
 
     else:
         print(tab*2+tweet+"\n")
-    print(vrd+tab+"Retweets: "+rst+str(post['retweets_count'])+tab*3+vrd+"Likes: "+rst+str(post['likes_count']))
+    print(vrd+tab+"Retweets: "+rst+str(post['retweets_count'])+tab*3+vrd+"Likes: "+rst+str(post['likes_count'])+tab*3+vrd+"User: "+rst+post['username'])
 
     return
 
@@ -193,8 +193,8 @@ if __name__ == '__main__':
         tag_file = sys.argv[2]
     raw_tweet_file = sys.argv[1]
     global tweets, tags, tagged
-    with raw_tweet_file.rsplit('.',1) as name:
-        tweet_file = name[0]+"_tagged"+name[1]
+    name = raw_tweet_file.rsplit('.',1)
+    tweet_file = name[0]+"_tagged."+name[1]
 
     main()
 

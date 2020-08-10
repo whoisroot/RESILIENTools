@@ -1,17 +1,19 @@
 {
 "tipo_desastre": {"pergunta": "Qual tipo de desastre é referenciado no post?", "bool": false },
 "causa_desastre": {"pergunta": "Qual a causa do desastre?", "bool": false },
-"organizacao": {"pergunta": "O post menciona alguma entidade ou organização de combate a desastres?", "bool": true },
+"organizacao": {"pergunta": "O post menciona alguma entidade ou organização de combate a desastres? Qual?", "bool": false },
 "acoes_org": {"pergunta": "Que ações a $(organização_ou_entidade) tomou?", "bool": false},
 "dificuldades_org": {"pergunta": "Que dificuldades ou barreiras a $(organização_ou_entidade) enfrentou?", "bool": false},
 "atendimento_atingidos": {"pergunta": "Quais os materiais ou serviços recebidos pelos atingidos?", "bool": false},
-"sentimento_DC": {"pergunta": "Como a comunidade recebe/se relaciona com a defesa civil?", "bool": false },
+"tipo_autor": {"pergunta": "O post foi feito por que tipo de autor? [Jornal, Governamental, Bombeiros, Atingidos, Pessoa 'comum']", "bool": false },
+"mortos_ou_feridos": {"pergunta":"O post relata mortos ou feridos?", "bool": true},
+"pedido_ajuda": {"pergunta":"O post é um pedido de ajuda?", "bool": true},
 "info": {"pergunta": "Que informações/sistemas/recursos são compartilhados entre a população e quem os auxilia?", "bool": false },
 "tecnologias": {"pergunta": "Quais as tecnologias usadas no combate a desastres?", "bool": false },
-"info_tecnologias": {"pergunta": "Como são aplicadas? Que informações obtem/divulgam? [Areas de risco, meteorologia, pontos de resgate, mortes, ETC]", "bool": false },
+"info_tecnologias": {"pergunta": "Que informações obtem/divulgam? [Areas de risco, meteorologia, pontos de resgate, mortes, ETC]", "bool": false },
 "reacoes_MonitAlerta": {"pergunta": "Que reações a população tem a alertas e ações de monitoramento de desastres?", "bool": false },
-"quali_DC": {"pergunta": "Como a população avalia a qualidade dos serviçõs da defesa civil?", "bool": false },
-"confianca_DC": {"pergunta": "A população confia na Defesa Civil? (bool? escala?)", "bool": true },
-"redes_sociais": {"pergunta": "Quais midias sociais para comunicação relacionadas a desastres?", "bool": false },
-"info_redes": {"pergunta": "Que informações são comunicadas através das redes sociais?", "bool": false}
+"quali_DC": {"pergunta": "Como a população avalia a qualidade dos serviços da defesa civil?", "bool": false },
+"redes_sociais": {"pergunta": "Quais as mídias sociais usadas para comunicação relacionada a desastres?", "bool": false },
+"info_redes": {"pergunta": "Que informações são comunicadas através das redes sociais?", "bool": false},
+"emocao": {"pergunta": "O post apresenta algum tipo de emoção? Qual?", "bool": false}
 }
