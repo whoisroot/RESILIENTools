@@ -154,7 +154,7 @@ def tagger(tweets, tags, tagged, perguntas):
                 tweet['relevante'] = True
                 if tweet['photos'] != []:
                     display(tweet['photos'])
-                tag("Quais das palavras chaves se aplicam?", tags)
+                tweet['palavras_chave'] = tag("Quais das palavras chaves se aplicam?", tags)
                 tagged.append(tweet)
 
             if i%10 == 0:
