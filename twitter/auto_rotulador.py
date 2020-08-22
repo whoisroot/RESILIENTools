@@ -47,8 +47,7 @@ class AutoTagger:
         try:
             for i in range(0, len(tweets)):
                 tweet = tweets.pop()
-                tweet["tweet"] = self.normalize_tweet(tweet)
-                applied_tags = [t for t in tags if t in tweet["tweet"].lower()]
+                applied_tags = [t for t in tags if t in self.normalize_tweet(tweet)]
                 tweet["relevante"] = any(applied_tags)
                 tweet["palavras_chave"] = applied_tags
                 tagged.append(tweet)
