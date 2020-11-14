@@ -1,7 +1,9 @@
 # RESILIENTools
 
+![Instruções de uso](Imagens/usage.png)
+
 ## Motivação
-Esta ferramenta foi criada pra coletar e rotular tweets relacionados a desastres naturais de maneira a dar um ponto adicional de análise para a tese de doutorado "*título da tese*", de __Rodolfo Strauss Nunes__. O objetivo foi automatizar a coleta de posts que pudessem ter relação com os desastres buscados para extrair dados que possibilitassem a análise da resiliência de diferentes municípios a destres naturais.
+Este ferramental foi criado pra coletar e rotular tweets relacionados a desastres naturais de maneira a dar um ponto adicional de análise para a tese de doutorado "*título da tese*", de __Rodolfo Strauss Nunes__. O objetivo foi automatizar a coleta de posts que pudessem ter relação com os desastres buscados para extrair dados que possibilitassem a análise da resiliência de diferentes municípios a destres naturais.
 
 ## Coleta de dados
 Para a coleta inicial dos dados, fui utilizada a ferramenta [Twint](https://github.com/), criada para facilitar a extração de dados brutos do twitter sem depender da API disponibilizada pela rede social (e sofrer bloqueios pela limitação de requisições permitidas). Com base nela, foi criado um script (`query.sh`) em _bash_ para fazer chamadas à ferramenta passando parâmetros como a data do desastre, sua localidade e as palavras-chave a serem buscadas.
@@ -57,5 +59,12 @@ gera este objeto JSON
 }
 ```
 
-## Rotulação
-Para possibilitar o tratamento posterior dos posts a serem analisados, os posts recebem um novo campo de dados `palavras_chave` contendo os rótulos que se aplicam àquela postagem específica. 
+## Rotulamento dos posts
+Para possibilitar o tratamento posterior dos posts a serem analisados, os posts recebem um novo campo de dados (`palavras_chave`) contendo os termos buscados presentes naquela postagem específica ao serem processados pelo programa `auto_rotulador.py`. Também pode se perguntar ao operador se o post é relevante ao estudo, de forma a reduzir o tamanho do conjunto de dados, e realizar uma revisão manual das tags aplicadas. Estas funções são tratadas pelo programa `rotulador_simples.py`.
+
+Além disso, a ferramenta `rotulador.py` permite definir perguntas (contidas no arquivo `perguntas.json`) a serem respondidas por um operador humano capaz de interpretar o post, com suas possíveis imagens e links, de forma a criar campos personalizados e rótulos resposta. Infelizmente, devido ao grande volume de dados coletados, não foi viável realizar em tempo hábil esta forma de rotulamento para o estudo em questão.
+
+## Interface
+![Versão mais completa do rotulador](Imagens/full.png "rotulador.py")
+
+![Versão mais completa do rotulador](Imagens/simple.png "rotulador.py")
