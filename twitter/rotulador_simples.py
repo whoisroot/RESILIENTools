@@ -6,6 +6,10 @@ from os import environ, path, stat, system
 from time import sleep
 from wget import download
 
+"""
+    Atalhos para constantes da biblioteca colorama,
+    utilizada colorir o texto a ser exibido na tela
+"""
 vrd = colorama.Fore.GREEN
 vrm = colorama.Fore.RED
 azl = colorama.Fore.BLUE
@@ -13,22 +17,34 @@ amrl = colorama.Fore.LIGHTYELLOW_EX
 rst = colorama.Fore.RESET
 cnz = colorama.Fore.LIGHTBLACK_EX
 
+"""
+    Salva os rótulos conhecidos até agora
+"""
 def save_tags():
     with open(tag_file,'w') as f:
         f.write(tags)
     return
 
+"""
+    Salva os arquivos JSON com a totalidade dos tweets
+"""
 def save_tweets(tagged, left):
+    # Tweets limpos e rotulados
     with open(tweet_file,'w') as f:
         json.dump(tagged,f)
+    # Tweets restantes/sem classificação
     with open(raw_tweet_file,'w') as f:
         json.dump(left,f)
     return
 
+"""
+    Formata e exibe o tweet de forma estruturada e "bonita", destacando o conteúdo
+    e metadados do tweet, como data, autor e número de likes e retweets.
+"""
 def pprint_tweet(post):
     tab = " "*4
     tweet = post['tweet']
-    sz = 80
+    sz = 80 # Largura máxima de cada linha, em caracteres
     print(tab+vrm+"Data: "+vrd+post['date']+" "+post['time']+rst)
     print(tab+vrm+"Tweet: "+rst)
     if len(tweet)>sz:
@@ -44,7 +60,11 @@ def pprint_tweet(post):
 
     return
 
+"""
+    Caso a postagem contenha imagens, essa função controla como serão exibidas
+"""
 def display(images):
+    # Atualmente a função só funciona em ambiente GNU/Linux
     if not sys.platform.startswith('linux'):
         return
     if prompt("Esse post contém imagens. Deseja exibi-las?"):
@@ -58,10 +78,14 @@ def display(images):
                 download(image, path, bar=None)
                 system('xdg-open "'+path+'"')
         else:
-            print(vrm+"Erro: "+rst+"Este terminal não suporta exibição de imagens e não detecto estar em uma sessão gráfica.\nDe OK para continuar ou Ctrl+C para interromper.")
+            print(vrm+"Erro: "+rst+"Este terminal não suporta exibição de imagens e não detecto estar em uma sessão gráfica.\n\
+                    De OK para continuar ou Ctrl+C para interromper.")
             input(amrl+"\n[OK]"+rst)
     return
 
+"""
+    Interface facilitada para perguntas do tipo "Sim ou Não"
+"""
 def prompt(pergunta):
     value = ""
     print('\n'+amrl+pergunta)
@@ -72,6 +96,10 @@ def prompt(pergunta):
     else:
         return False
 
+"""
+    Exibe uma pergunta e os rótulos associados a ela até então, dando a opção de adicionar
+    novas tags ou ignorar a pergunta, caso ela não se aplique ao conteúdo do post
+"""
 def tag(pergunta,tag_values):
     aplicadas = []
     new = False
@@ -104,7 +132,11 @@ def tag(pergunta,tag_values):
     aplicadas = list(set(aplicadas))
     return [tag_values[i] for i in aplicadas]
 
+"""
+    Função de inicialização do rotulador para o funcionamento independente
+"""
 def main():
+    # Carrega os tweets coletados
     try:
         with open(raw_tweet_file) as f:
             tweets = json.load(f)
@@ -140,6 +172,9 @@ def main():
 
     return
 
+"""
+    Função principal executada no rotulador para tratar os posts
+"""
 def tagger(tweets, tags, tagged, perguntas):
     total = len(tweets)
     try:
@@ -161,20 +196,26 @@ def tagger(tweets, tags, tagged, perguntas):
                 save_tweets(tagged, tweets)
                 system("rm /tmp/rotulador_imgs/*")
         return
+    # Caso o usuário envie CTRL+C para interromper a execução do programa
     except KeyboardInterrupt:
-        tweets.append(tweet)
-        save_tweets(tagged, tweets)
+        # Salva o estado atual de execução
         if prompt("Você deseja mesmo encerrar?"):
             print(vrm+'\n\nEncerrando programa...\n')
+            save_tweets(tagged, tweets)
             sleep(0.5)
             print(amrl+'Salvando tweets rotulados...')
+            tweets.append(tweet)
             sleep(0.5)
             print(vrd+'\nSalvos!\n\n'+rst)
             exit(0)
+        # Retorna à função de rotulamento
         else:
             tagger(tweets, tags, tagged,perguntas)
 
 
+"""
+    Tratamento inicial de parâmetros de linha de comando e configuração de constantes para execução indendente
+"""
 if __name__ == '__main__':
     tag_file = '../Palavras-chave.txt'
     if len(sys.argv) < 2:
